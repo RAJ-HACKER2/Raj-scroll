@@ -1,21 +1,26 @@
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open('blog-cache-v1').then((cache) => {
-      return cache.addAll([
-        '/',
-        '/path/to/icon-192x192.png',
-        '/path/to/icon-512x512.png',
-        '/styles.css',
-        '/scripts.js'
-      ]);
-    })
-  );
-});
+let deferredPrompt;
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
-});
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevent the default prompt from appearing automatically
+  e.preventDefault();
+  deferredPrompt = e;
+
+  // Show your custom install button
+  const installBtn = document.getElementById('install-button');
+  installBtn.style.display = 'block';
+
+  installBtn.addEventListener('click', () => {
+    // Show the install prompt
+    deferredPrompt.prompt();
+
+    // Wait for the user to respond
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+      } else {
+        console.log('User dismissed the install prompt');
+      }
+      deferredPrompt = null;
+    });
+  });
+})
